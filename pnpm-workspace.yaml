@@ -1,4 +1,8 @@
 packages:
   - "apps/*"
-  - "shared/lib"
-  - "shared/tokens"
+
+ignore:
+  - "node_modules"
+  - ".next"
+  - "dist"
+  - "__pycache__"

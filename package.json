@@ -1,0 +1,22 @@
+{
+  "name": "ghitdesk",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "storybook": "pnpm --filter web storybook"
+  },
+  "devDependencies": {
+    "turbo": "^1.10.0",
+    "@changesets/cli": "^2.27.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "react": "18.2.0",
+      "react-dom": "18.2.0"
+    }
+  }
+}

@@ -1,15 +1,9 @@
-/** @type {import("next").NextConfig} */
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  poweredByHeader: false,
   experimental: {
-    serverActions: {
-      allowedOrigins: [".localhost"],
-    },
+    optimizePackageImports: ['@heroui/react'],
   },
-  eslint: {
-    dirs: ["."],
-  },
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig

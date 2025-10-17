@@ -1,29 +1,51 @@
-# Node
+# Dependencies
 node_modules/
-.pnpm-store/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Next.js
 .next/
 out/
-.docusaurus/
+build/
+dist/
 
 # Python
 __pycache__/
 *.py[cod]
-*.pyc
-*.pyo
-*.pyd
-.pytest_cache/
-.env
+*$py.class
 .venv/
+venv/
+ENV/
 
-# Editors
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
 .vscode/
 .idea/
-.DS_Store
+*.swp
+*.swo
 
-# Docker
-volumes/
-logs/
+# Storybook
+storybook-static/
 
-# Misc
-*.log
-coverage/
+# Turbo
+.turbo/
+
+# Documentation
+docs/
