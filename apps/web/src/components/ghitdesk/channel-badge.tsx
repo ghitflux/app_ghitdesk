@@ -1,62 +1,45 @@
-'use client';
-
-import { Chip } from "@heroui/react";
+import { Chip } from "@heroui/chip";
 import { MessageCircle, Mail, Send, Twitter } from "lucide-react";
 
-type Channel = "whatsapp" | "email" | "telegram" | "twitter";
+export type Channel = "whatsapp" | "email" | "telegram" | "twitter";
 
-const channelConfig: Record<Channel, {
-  label: string;
-  color: "default" | "primary" | "secondary" | "success" | "warning" | "danger";
-  icon: React.ComponentType<{ className?: string; size?: number }>;
-}> = {
+interface ChannelBadgeProps {
+  channel: Channel;
+}
+
+const channelConfig = {
   whatsapp: {
     label: "WhatsApp",
-    color: "success",
+    color: "success" as const,
     icon: MessageCircle,
   },
   email: {
     label: "Email",
-    color: "secondary",
+    color: "primary" as const,
     icon: Mail,
   },
   telegram: {
     label: "Telegram",
-    color: "primary",
+    color: "primary" as const,
     icon: Send,
   },
   twitter: {
     label: "Twitter",
-    color: "primary",
+    color: "default" as const,
     icon: Twitter,
   },
 };
 
-interface ChannelBadgeProps {
-  channel: Channel;
-  showIcon?: boolean;
-  size?: "sm" | "md" | "lg";
-  variant?: "solid" | "bordered" | "flat" | "faded" | "shadow" | "dot";
-  className?: string;
-}
-
-export function ChannelBadge({
-  channel,
-  showIcon = true,
-  size = "md",
-  variant = "flat",
-  className,
-}: ChannelBadgeProps) {
+export function ChannelBadge({ channel }: ChannelBadgeProps) {
   const config = channelConfig[channel];
   const Icon = config.icon;
 
   return (
     <Chip
       color={config.color}
-      size={size}
-      variant={variant}
-      startContent={showIcon ? <Icon size={16} /> : undefined}
-      className={className}
+      variant="bordered"
+      size="sm"
+      startContent={<Icon size={14} />}
     >
       {config.label}
     </Chip>
