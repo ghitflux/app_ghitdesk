@@ -1,39 +1,28 @@
-import { Button, Card, CardBody, CardHeader, Divider } from "@heroui/react";
-
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold text-primary">GhitDesk</h1>
-          <p className="text-sm text-default-500">Design System MVP</p>
-        </CardHeader>
-        <Divider />
-        <CardBody className="gap-4">
-          <p className="text-default-700">
-            Todos os componentes HeroUI estão prontos! 🚀
-          </p>
-          <div className="flex gap-2 flex-wrap">
-            <Button color="primary" size="lg">
-              Começar
-            </Button>
-            <Button color="secondary" variant="flat" size="lg">
-              Documentação
-            </Button>
+    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-primary mb-4">
+          Welcome to GhitDesk
+        </h1>
+        <p className="text-text-muted text-lg">
+          Modern Help Desk System with Next.js 15 & Turbopack
+        </p>
+        <div className="mt-8 flex gap-4 justify-center">
+          <div className="bg-surface p-6 rounded-lg border border-border">
+            <h3 className="text-success font-semibold mb-2">✓ Next.js 15</h3>
+            <p className="text-text-muted text-sm">App Router + Turbopack</p>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button color="success" size="sm" variant="bordered">
-              Success
-            </Button>
-            <Button color="warning" size="sm" variant="bordered">
-              Warning
-            </Button>
-            <Button color="danger" size="sm" variant="bordered">
-              Danger
-            </Button>
+          <div className="bg-surface p-6 rounded-lg border border-border">
+            <h3 className="text-primary font-semibold mb-2">✓ Tailwind v4</h3>
+            <p className="text-text-muted text-sm">CSS-first approach</p>
           </div>
-        </CardBody>
-      </Card>
-    </div>
+          <div className="bg-surface p-6 rounded-lg border border-border">
+            <h3 className="text-warning font-semibold mb-2">✓ Design System</h3>
+            <p className="text-text-muted text-sm">@ghit/ui package</p>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }

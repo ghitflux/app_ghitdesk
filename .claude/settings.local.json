@@ -1,11 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Bash(pnpm install:*)",
-      "Bash(pnpm changeset:*)",
-      "Bash(pnpm add:*)",
-      "Bash(pnpm remove:*)",
-      "Bash(git add:*)"
+      "Bash(pnpm install)",
+      "Bash(docker-compose up -d)",
+      "Bash(docker-compose ps)",
+      "Bash(pnpm db:generate)",
+      "Bash(pnpm db:migrate)",
+      "Bash(docker exec ghitdesk-postgres psql -U ghitdesk -d ghitdesk -c \"SELECT 1;\")",
+      "Bash(docker-compose down -v)",
+      "Bash(pnpm dlx heroui-cli@latest init --yes --typescript --package-manager pnpm --src-alias \"@\")",
+      "Bash(pnpm dlx heroui-cli@latest init)",
+      "Bash(pnpm add @heroui/react @heroui/system @heroui/theme framer-motion)",
+      "Bash(git checkout -b ghitsaas)",
+      "Bash(git add -A)"
     ],
     "deny": [],
     "ask": []

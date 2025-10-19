@@ -1,337 +1,210 @@
-# 🚀 GhitDesk MVP
+# GhitDesk
 
-Sistema de helpdesk omnichannel profissional com integração WhatsApp, IA e real-time.
+Sistema de Help Desk moderno construído com arquitetura monorepo e design patterns.
 
-## 📊 Status do Projeto
+## Arquitetura
 
-✅ **TODAS AS 5 ETAPAS CONCLUÍDAS!**
-
-- ✅ ETAPA 1: Fundação Completa (Monorepo + HeroUI + Docker)
-- ✅ ETAPA 2: Design System (24 componentes + 63+ stories)
-- ✅ ETAPA 3: Backend Core + Auth (FastAPI + JWT + PostgreSQL)
-- ✅ ETAPA 4: Features MVP (WhatsApp + Inbox + Tickets + SSE + Padrões)
-- ✅ ETAPA 5: Testes + CI/CD + Documentação
-
-**Status:** 🎉 **MVP COMPLETO E FUNCIONAL**
-
-## 🛠️ Stack Tecnológica
-
-### Frontend
-- **Next.js 15** + React 18
-- **HeroUI** (design system completo)
-- **Tailwind CSS 4** (configuração via CSS)
-- **Storybook 9/10** (documentação visual)
-- **TanStack Query** (data fetching)
-- **SSE** (real-time updates)
-- **TypeScript** (strict mode)
-
-### Backend
-- **FastAPI** + Python 3.11
-- **SQLAlchemy 2.0** (async ORM)
-- **PostgreSQL 16** (banco de dados)
-- **Redis 7** (cache + pub/sub)
-- **Alembic** (migrations)
-- **JWT** (autenticação)
-- **SSE** (Server-Sent Events)
-
-### DevOps
-- **Docker + docker-compose**
-- **pnpm workspaces** + turbo
-- **GitHub Actions** CI/CD
-- **pytest** (testes backend)
-- **Vitest** (testes frontend)
-
-## 🏗️ Padrões de Design Implementados
-
-### Singleton Pattern (5 implementações)
-- **Config**: Carrega env vars uma vez
-- **DatabaseSessionFactory**: Instância única do engine
-- **RedisClient**: Conexão Redis singleton
-- **WhatsAppClient**: HTTP client reutilizável
-- **SSEManager**: Gerencia conexões SSE
-- **APIClient** (frontend): Requisições centralizadas
-
-### Factory Pattern
-- **ChannelFactory**: Cria handlers por canal (WhatsApp, Email, Telegram)
-- Extensível sem modificar código existente (Open/Closed Principle)
-
-### Strategy Pattern (2 implementações)
-- **SLA Calculation**: SimpleSLAStrategy (MVP) vs BusinessHoursSLAStrategy (futuro)
-- **Message Processing**: WhatsAppInboundStrategy, EmailInboundStrategy
-
-### Repository Pattern
-- **UserRepository**, **ConversationRepository**, etc.
-- Abstrai acesso a dados
-
-## 📋 Setup Local
-
-### Pré-requisitos
-- **Node.js 20+**
-- **pnpm 8+**
-- **Python 3.11+**
-- **Docker + docker-compose**
-
-### Instalação Rápida
-
-```bash
-# 1. Clonar repositório
-git clone https://github.com/ghitflux/app_ghitdesk.git
-cd app_ghitdesk
-
-# 2. Instalar dependências frontend
-pnpm install
-
-# 3. Configurar ambiente
-cp .env.example .env.local
-# Editar .env.local se necessário
-
-# 4. Subir Docker (Postgres + Redis)
-docker-compose up -d
-
-# 5. Setup Backend
-cd apps/api
-python -m venv venv
-venv\Scripts\activate  # Windows
-# ou
-source venv/bin/activate  # Linux/Mac
-
-pip install -r requirements.txt
-
-# 6. Rodar migrations
-alembic upgrade head
-
-# 7. Popular banco com dados de teste
-python seed_data.py
-
-# 8. Rodar backend (em um terminal)
-python -m app.main
-
-# 9. Rodar frontend (em outro terminal)
-cd ../..
-pnpm dev
-
-# 10. Rodar Storybook (opcional, em outro terminal)
-pnpm storybook
-```
-
-## 🌐 URLs Locais
-
-- **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:8000
-- **API Docs (OpenAPI):** http://localhost:8000/docs
-- **Storybook:** http://localhost:6006
-
-## 🔑 Credenciais de Teste
-
-Após rodar `seed_data.py`:
-
-- **Admin:** admin@ghitdesk.com / admin123
-- **Agent 1:** joao@ghitdesk.com / agent123
-- **Agent 2:** maria@ghitdesk.com / agent123
-
-## 🎨 Design System
-
-**24 componentes disponíveis:**
-- 16 componentes HeroUI base (Button, Input, Select, etc)
-- 8 componentes customizados GhitDesk (StatusBadge, PriorityBadge, TicketCard, etc)
-
-**Cores:**
-- Primary: `#6F6AFF` (roxo GhitDesk)
-- Success: `#16A34A` (verde)
-- Warning: `#D97706` (laranja)
-- Danger: `#EF4444` (vermelho)
-
-**Dark Mode:** Habilitado por padrão
-
-## 🧪 Testes
-
-### Backend (pytest)
-```bash
-cd apps/api
-pytest                          # Rodar todos
-pytest --cov=app               # Com coverage
-pytest tests/test_security.py  # Específico
-```
-
-### Frontend (Vitest)
-```bash
-cd apps/web
-pnpm test           # Rodar todos
-pnpm test:ui        # Interface visual
-pnpm test:coverage  # Com coverage
-```
-
-## 📊 Estrutura do Projeto
+### Monorepo Structure
 
 ```
 ghitdesk/
 ├── apps/
-│   ├── web/                       # Next.js 15 frontend
-│   │   ├── src/
-│   │   │   ├── app/              # App Router (pages)
-│   │   │   ├── components/       # Componentes React
-│   │   │   │   └── ghitdesk/    # Componentes customizados
-│   │   │   ├── context/         # React Context (Auth)
-│   │   │   ├── services/        # API Client, SSE Client
-│   │   │   ├── hooks/           # Custom hooks
-│   │   │   └── lib/             # Utils
-│   │   ├── .storybook/          # Configuração Storybook
-│   │   └── vitest.config.ts     # Config testes
-│   │
-│   └── api/                       # FastAPI backend
-│       ├── app/
-│       │   ├── core/             # Config, Security (Singleton)
-│       │   ├── db/               # Database, Repositories
-│       │   ├── cache/            # RedisClient (Singleton)
-│       │   ├── models/           # SQLAlchemy models
-│       │   ├── schemas/          # Pydantic schemas
-│       │   ├── services/         # Business logic (Factory, Strategy)
-│       │   ├── integrations/     # WhatsApp, SSE (Singletons)
-│       │   └── api/routes/       # FastAPI endpoints
-│       ├── migrations/           # Alembic migrations
-│       ├── tests/                # Pytest tests
-│       ├── seed_data.py          # Script seed
-│       └── requirements.txt
-│
-├── stories/                       # Storybook stories
-│   └── components/
-│       ├── heroui/               # Stories HeroUI
-│       └── ghitdesk/             # Stories customizadas
-│
-├── docs/                          # Documentação completa
-│   ├── PLANO-GERAL-5-ETAPAS.md
-│   ├── ETAPA-1-CONCLUIDA.md
-│   ├── ETAPA-2-CONCLUIDA.md
-│   ├── ETAPA-3-CONCLUIDA.md
-│   ├── ETAPA-4-CONCLUIDA.md
-│   └── ETAPA-5-CONCLUIDA.md
-│
-├── .github/workflows/             # GitHub Actions CI/CD
-├── docker-compose.yml            # Postgres + Redis
-├── pnpm-workspace.yaml           # Monorepo config
-└── README.md                     # Este arquivo
+│   ├── api/          # Fastify backend
+│   └── web/          # Next.js 15 frontend
+├── packages/
+│   ├── @ghit/ui/     # Design system
+│   ├── @ghit/core/   # Business logic & patterns
+│   └── @ghit/config/ # Shared configurations
+└── docker/           # Docker configurations
 ```
 
-## 🚀 Features Implementadas
+### Design Patterns
 
-### Autenticação
-- ✅ Login/logout com JWT
-- ✅ Access + refresh tokens
-- ✅ Cookies httpOnly
-- ✅ Middleware proteção de rotas
+#### Singleton Pattern
+- **DatabaseConnection**: Pool de conexões PostgreSQL
+- **CacheManager**: Cliente Redis para cache
+- **Logger**: Logger Pino com contexto
+
+#### Factory Pattern
+- **EntityFactory**: Factory abstrato para entidades de domínio
+- **TicketFactory**: Criação de tickets com validação
+- **TaskFactory**: Criação de tarefas
+- **ContactFactory**: Criação de contatos
+
+#### Strategy Pattern
+- **AuthStrategy**: Interface para estratégias de autenticação
+  - JWTAuthStrategy: Autenticação baseada em JWT
+  - SessionAuthStrategy: Autenticação baseada em sessão
+- **SLAStrategy**: Cálculo de SLA baseado em prioridade
+  - HighPrioritySLAStrategy
+  - MediumPrioritySLAStrategy
+  - LowPrioritySLAStrategy
+
+## Tecnologias
 
 ### Backend
-- ✅ 5 models SQLAlchemy (User, Contact, Conversation, Message, Ticket)
-- ✅ 7 endpoints REST API
-- ✅ Webhooks WhatsApp (verification + inbound)
-- ✅ SSE stream para real-time
-- ✅ SLA calculation automático
-- ✅ Message deduplication (Redis)
+- **Fastify**: Framework Node.js de alta performance
+- **PostgreSQL 16**: Banco de dados relacional
+- **Redis 7**: Cache e gerenciamento de sessões
+- **Drizzle ORM**: ORM TypeScript-first
+- **Pino**: Logger de alta performance
 
 ### Frontend
-- ✅ Inbox page (lista conversas)
-- ✅ Tickets page (lista tickets com SLA)
-- ✅ Reports page (dashboard KPIs)
-- ✅ Real-time via SSE
-- ✅ Design system completo
+- **Next.js 15**: Framework React
+- **TypeScript**: Type safety
+- **Tailwind CSS**: Styling
 
-## 📚 Documentação
+### DevOps
+- **Turborepo**: Build system para monorepo
+- **pnpm**: Package manager rápido
+- **Docker**: Containerização
+- **Docker Compose**: Orquestração local
 
-- [📋 Plano Geral](docs/PLANO-GERAL-5-ETAPAS.md) - Visão geral das 5 etapas
-- [🏗️ ETAPA 1](docs/ETAPA-1-CONCLUIDA.md) - Fundação (Monorepo + HeroUI)
-- [🎨 ETAPA 2](docs/ETAPA-2-CONCLUIDA.md) - Design System (24 componentes)
-- [🔐 ETAPA 3](docs/ETAPA-3-CONCLUIDA.md) - Backend + Auth (FastAPI + JWT)
-- [🚀 ETAPA 4](docs/ETAPA-4-CONCLUIDA.md) - Features MVP (WhatsApp + SSE)
-- [✅ ETAPA 5](docs/ETAPA-5-CONCLUIDA.md) - Testes + CI/CD
+## Setup
 
-## 🔄 CI/CD
+### Pré-requisitos
 
-GitHub Actions configurado com:
-- ✅ Lint (ESLint + TypeScript)
-- ✅ Testes backend (pytest + coverage)
-- ✅ Testes frontend (Vitest)
-- ✅ Build verificação
-- ✅ Postgres + Redis services
+- Node.js >= 18.0.0
+- pnpm >= 8.0.0
+- Docker e Docker Compose
 
-## 🐛 Troubleshooting
+### Instalação
 
-### Portas ocupadas
+1. Clone o repositório:
 ```bash
-# Windows
-netstat -ano | findstr :3000
-taskkill /PID <PID> /F
-
-# Linux/Mac
-lsof -i :3000
-kill -9 <PID>
+git clone <repository-url>
+cd ghitdesk
 ```
 
-### Docker não sobe
+2. Copie o arquivo de ambiente:
 ```bash
-docker-compose down -v
-docker-compose up -d
-docker-compose ps  # Verificar status
+cp .env.example .env
 ```
 
-### Erro de migration
-```bash
-cd apps/api
-alembic downgrade base  # Limpar
-alembic upgrade head    # Aplicar novamente
-```
-
-### Dependências desatualizadas
+3. Instale as dependências:
 ```bash
 pnpm install
-cd apps/api && pip install -r requirements.txt
 ```
 
-## 📊 Estatísticas do Projeto
+4. Inicie os serviços Docker:
+```bash
+docker-compose up -d
+```
 
-- **Arquivos criados:** 120+
-- **Linhas de código:** ~8000+
-- **Testes:** 15+ (backend + frontend)
-- **Componentes:** 24 (HeroUI + customizados)
-- **Stories:** 63+
-- **Endpoints API:** 12+
-- **Models:** 5
-- **Padrões de design:** 8 implementações
+5. Verifique o status dos containers:
+```bash
+docker-compose ps
+```
 
-## 🎯 Próximos Passos (Roadmap)
+## Desenvolvimento
 
-### Fase 2 - Expansão
-- [ ] Email channel (Factory Pattern)
-- [ ] Telegram channel (Factory Pattern)
-- [ ] BusinessHoursSLAStrategy (Strategy Pattern)
-- [ ] Attachments (S3 integration)
-- [ ] Multi-tenant support
+### Comandos Disponíveis
 
-### Fase 3 - IA
-- [ ] STT (Speech-to-Text) para áudios
-- [ ] NER (Named Entity Recognition)
-- [ ] Resumo automático de conversas
-- [ ] Chatbot com GPT-4
+```bash
+# Desenvolvimento (todos os packages)
+pnpm dev
 
-### Fase 4 - Analytics
-- [ ] Dashboard avançado
-- [ ] Relatórios customizáveis
-- [ ] Métricas em tempo real
-- [ ] Exportação de dados
+# Build (todos os packages)
+pnpm build
 
-## 📞 Suporte
+# Lint
+pnpm lint
 
-- **Documentação:** Consultar `docs/`
-- **Issues:** GitHub Issues
-- **Email:** suporte@ghitflux.com
+# Tests
+pnpm test
 
-## 📄 Licença
+# Typecheck
+pnpm typecheck
 
-MIT License - Veja LICENSE para detalhes
+# Format
+pnpm format
 
----
+# Limpar
+pnpm clean
+```
 
-**Desenvolvido com ❤️ pela equipe GhitFlux**
+### Trabalhar em um package específico
 
-**Tecnologias:** Next.js 15 • FastAPI • PostgreSQL • Redis • HeroUI • Tailwind 4 • Storybook 9
+```bash
+# Instalar dependência no @ghit/core
+pnpm --filter @ghit/core add <package>
 
-**Status:** ✅ MVP Completo e Funcional
+# Rodar dev no frontend
+pnpm --filter web dev
+
+# Build do backend
+pnpm --filter api build
+```
+
+## Docker Services
+
+### PostgreSQL
+- **Porta**: 5432
+- **Database**: ghitdesk
+- **User**: ghitdesk
+- **Password**: ghitdesk_dev_password
+
+### Redis
+- **Porta**: 6379
+- **Password**: ghitdesk_redis_password
+
+### Comandos úteis
+
+```bash
+# Ver logs
+docker-compose logs -f
+
+# Parar serviços
+docker-compose down
+
+# Parar e remover volumes
+docker-compose down -v
+
+# Reiniciar serviços
+docker-compose restart
+```
+
+## Package @ghit/core
+
+O package `@ghit/core` contém a lógica de negócio e design patterns fundamentais.
+
+### Uso
+
+```typescript
+import {
+  DatabaseConnection,
+  ticketFactory,
+  JWTAuthStrategy,
+  getSLAStrategy
+} from '@ghit/core';
+
+// Singleton - Database
+const db = DatabaseConnection.getInstance();
+await db.testConnection();
+
+// Factory - Ticket
+const ticket = ticketFactory.create({
+  title: 'Bug no sistema',
+  description: 'Descrição detalhada',
+  reporterId: 'user-123',
+  priority: TicketPriority.HIGH
+});
+
+// Strategy - Auth
+const authStrategy = new JWTAuthStrategy({
+  secret: process.env.JWT_SECRET,
+  expiresIn: '7d'
+});
+
+// Strategy - SLA
+const slaStrategy = getSLAStrategy(ticket.priority);
+const deadlines = slaStrategy.calculateDeadlines(new Date(), ticket.priority);
+```
+
+## Próximos Passos
+
+Aguardando o PROMPT 2 para continuar a construção do projeto.
+
+## Licença
+
+MIT

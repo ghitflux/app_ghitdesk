@@ -1,36 +1,50 @@
-version: "3.8"
-
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: ghitdesk_postgres
-    environment:
-      POSTGRES_USER: ghitdesk_user
-      POSTGRES_PASSWORD: ghitdesk_password
-      POSTGRES_DB: ghitdesk_db
+    container_name: ghitdesk-postgres
+    restart: unless-stopped
     ports:
       - "5432:5432"
+    environment:
+      POSTGRES_DB: ghitdesk
+      POSTGRES_USER: ghitdesk
+      POSTGRES_PASSWORD: ghitdesk_dev_password
+      POSTGRES_INITDB_ARGS: "-E UTF8"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ghitdesk_user"]
+      test: ["CMD-SHELL", "pg_isready -U ghitdesk -d ghitdesk"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+    networks:
+      - ghitdesk-network
 
   redis:
     image: redis:7-alpine
-    container_name: ghitdesk_redis
+    container_name: ghitdesk-redis
+    restart: unless-stopped
     ports:
       - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ghitdesk_redis_password
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+    networks:
+      - ghitdesk-network
 
 volumes:
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
+
+networks:
+  ghitdesk-network:
+    driver: bridge

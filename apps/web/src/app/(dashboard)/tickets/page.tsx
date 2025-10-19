@@ -1,131 +1,83 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardBody, Input, Select, SelectItem } from '@heroui/react';
-import { Search, Ticket as TicketIcon } from 'lucide-react';
-import { TicketCard } from '@/components/ghitdesk/ticket-card';
-import { useSSE } from '@/hooks/useSSE';
-import { apiClient } from '@/services/api-client';
+import React from 'react';
+import { KanbanBoard, TicketCard, type KanbanColumn, type KanbanItem } from '@ghit/ui';
+import { useTickets, useTicketMutations } from '@/hooks/useTickets';
+import type { Ticket } from '@/services/api/repositories/TicketRepository';
 
-interface Ticket {
+interface TicketKanbanItem extends KanbanItem {
   id: string;
-  ticket_number: string;
-  title: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  status: 'open' | 'in_progress' | 'resolved' | 'closed';
-  created_at: string;
-  sla?: {
-    hours_remaining: number;
-    is_breached: boolean;
-    is_warning: boolean;
-  };
+  columnId: string;
+  data: Ticket;
 }
 
 export default function TicketsPage() {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const { tickets, isLoading } = useTickets();
+  const { moveTicket } = useTicketMutations();
 
-  const { isConnected } = useSSE();
+  const columns: KanbanColumn[] = [
+    { id: 'open', title: 'Aberto', color: 'primary' },
+    { id: 'in_progress', title: 'Em Andamento', color: 'info' },
+    { id: 'pending', title: 'Aguardando', color: 'warning' },
+    { id: 'resolved', title: 'Resolvido', color: 'success' },
+  ];
 
-  useEffect(() => {
-    const fetchTickets = async () => {
-      try {
-        const data = await apiClient.request<{ tickets: Ticket[] }>('/tickets');
-        setTickets(data.tickets);
-      } catch (error) {
-        console.error('Failed to fetch tickets:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Converter tickets para KanbanItems
+  const kanbanItems: TicketKanbanItem[] = tickets.map((ticket) => ({
+    id: ticket.id,
+    columnId: ticket.status,
+    data: ticket,
+  }));
 
-    fetchTickets();
-  }, []);
-
-  const formatSLA = (sla?: Ticket['sla']) => {
-    if (!sla) return undefined;
-    const hours = Math.floor(sla.hours_remaining);
-    if (hours < 0) return 'SLA vencido';
-    if (hours < 1) return `${Math.floor(sla.hours_remaining * 60)}min restantes`;
-    return `${hours}h restantes`;
+  const handleMove = (itemId: string, fromColumn: string, toColumn: string) => {
+    moveTicket(itemId, fromColumn, toColumn);
   };
 
+  const getSLAStatus = (ticket: Ticket): 'ok' | 'warning' | 'critical' | undefined => {
+    if (!ticket.slaDueAt) return undefined;
+    const now = new Date();
+    const due = new Date(ticket.slaDueAt);
+    const diff = due.getTime() - now.getTime();
+    const hours = diff / (1000 * 60 * 60);
+
+    if (hours < 0) return 'critical';
+    if (hours < 2) return 'warning';
+    return 'ok';
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-text-muted">Carregando tickets...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Tickets</h1>
-          <p className="text-default-500 mt-1">
-            Gerenciar tickets • {isConnected ? '🟢' : '🔴'} Real-time
-          </p>
-        </div>
-        <Select
-          label="Status"
-          placeholder="Todos"
-          className="w-48"
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <SelectItem key="open" value="open">Aberto</SelectItem>
-          <SelectItem key="in_progress" value="in_progress">Em Andamento</SelectItem>
-          <SelectItem key="resolved" value="resolved">Resolvido</SelectItem>
-        </Select>
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-text">Tickets</h1>
+        <p className="text-text-muted mt-1">Gerenciamento de tickets em Kanban</p>
       </div>
 
-      <Input
-        placeholder="Buscar tickets..."
-        startContent={<Search size={18} />}
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
-
-      <div className="grid gap-4">
-        {isLoading ? (
-          <Card>
-            <CardBody>
-              <p className="text-center text-default-500">Carregando...</p>
-            </CardBody>
-          </Card>
-        ) : tickets.length === 0 ? (
-          <Card>
-            <CardBody className="text-center space-y-4 py-12">
-              <TicketIcon size={48} className="mx-auto text-default-300" />
-              <div>
-                <p className="text-lg font-medium">Nenhum ticket encontrado</p>
-                <p className="text-default-500 text-sm mt-1">
-                  Os tickets aparecerão aqui quando forem criados
-                </p>
-              </div>
-            </CardBody>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {tickets.map((ticket) => (
-              <TicketCard
-                key={ticket.id}
-                id={ticket.ticket_number}
-                title={ticket.title}
-                description="Descrição do ticket (mock)"
-                status={ticket.status}
-                priority={ticket.priority}
-                channel="whatsapp"
-                messageCount={0}
-                slaRemaining={formatSLA(ticket.sla)}
-                createdAt={new Date(ticket.created_at).toLocaleString('pt-BR')}
-              />
-            ))}
-          </div>
+      <KanbanBoard
+        columns={columns}
+        items={kanbanItems}
+        onMove={handleMove}
+        renderItem={(item: TicketKanbanItem) => (
+          <TicketCard
+            id={item.data.id}
+            title={item.data.title}
+            description={item.data.description}
+            status={item.data.status}
+            priority={item.data.priority}
+            slaStatus={getSLAStatus(item.data)}
+            tags={item.data.tags}
+            createdAt={item.data.createdAt}
+            isDraggable
+          />
         )}
-      </div>
-
-      {tickets.length > 0 && (
-        <Card>
-          <CardBody className="text-center text-sm text-default-500">
-            Mostrando {tickets.length} tickets • ETAPA 4 MVP
-          </CardBody>
-        </Card>
-      )}
+      />
     </div>
   );
 }
