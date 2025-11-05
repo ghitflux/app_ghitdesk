@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardBody, Input, Select, SelectItem } from '@heroui/react';
 import { Search, Ticket as TicketIcon } from 'lucide-react';
 import { TicketCard } from '@/components/ghitdesk/ticket-card';
-import { useSSE } from '@/hooks/useSSE';
+import { useSSE, useSSEEvent } from '@/hooks/useSSE';
 import { apiClient } from '@/services/api-client';
 
 interface Ticket {
@@ -43,6 +43,49 @@ export default function TicketsPage() {
 
     fetchTickets();
   }, []);
+
+  // Listen for real-time ticket updates
+  useSSEEvent('ticket:created', (data: any) => {
+    console.log('New ticket created:', data);
+
+    // Add new ticket to the top of the list
+    const newTicket: Ticket = {
+      id: data.ticket_id,
+      ticket_number: data.ticket_number,
+      title: data.title,
+      priority: data.priority,
+      status: data.status,
+      created_at: data.timestamp || new Date().toISOString(),
+    };
+
+    setTickets((prev) => [newTicket, ...prev]);
+  });
+
+  useSSEEvent('ticket:updated', (data: any) => {
+    console.log('Ticket updated:', data);
+
+    // Update ticket in list
+    setTickets((prev) =>
+      prev.map((ticket) =>
+        ticket.id === data.ticket_id || ticket.ticket_number === data.ticket_id
+          ? { ...ticket, ...data.changes, ...(data.ticket || {}) }
+          : ticket
+      )
+    );
+  });
+
+  useSSEEvent('ticket:status_changed', (data: any) => {
+    console.log('Ticket status changed:', data);
+
+    // Update ticket status
+    setTickets((prev) =>
+      prev.map((ticket) =>
+        ticket.id === data.ticket_id
+          ? { ...ticket, status: data.new_status }
+          : ticket
+      )
+    );
+  });
 
   const formatSLA = (sla?: Ticket['sla']) => {
     if (!sla) return undefined;

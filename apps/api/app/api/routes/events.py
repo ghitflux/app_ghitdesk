@@ -13,6 +13,9 @@ async def events_stream():
     client_id = str(uuid4())
     sse_manager = SSEManager.get_instance()
 
+    # Start Redis listener if not already running (multi-worker support)
+    await sse_manager.start_redis_listener()
+
     async def event_generator():
         try:
             # Send initial connection message

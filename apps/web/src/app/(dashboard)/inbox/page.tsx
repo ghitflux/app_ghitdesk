@@ -54,12 +54,45 @@ export default function InboxPage() {
   // Listen for real-time updates
   useSSEEvent('message:new', (data: any) => {
     console.log('New message received:', data);
-    // TODO: Update conversation in list
+
+    // Update conversation in list or add if new
+    setConversations((prev) => {
+      const conversationId = data.conversation_id;
+      const existingIndex = prev.findIndex((c) => c.id === conversationId);
+
+      if (existingIndex >= 0) {
+        // Update existing conversation - move to top
+        const updated = [...prev];
+        const conversation = { ...updated[existingIndex] };
+        conversation.unread_count = (conversation.unread_count || 0) + 1;
+        conversation.last_message_at = data.timestamp || new Date().toISOString();
+        updated.splice(existingIndex, 1);
+        return [conversation, ...updated];
+      } else {
+        // New conversation
+        const newConv: Conversation = {
+          id: conversationId,
+          channel: data.channel || 'whatsapp',
+          status: 'open',
+          unread_count: 1,
+          last_message_at: data.timestamp || new Date().toISOString(),
+        };
+        return [newConv, ...prev];
+      }
+    });
   });
 
   useSSEEvent('conversation:update', (data: any) => {
     console.log('Conversation updated:', data);
-    // TODO: Update conversation in list
+
+    // Update conversation in list
+    setConversations((prev) =>
+      prev.map((conv) =>
+        conv.id === data.conversation_id
+          ? { ...conv, ...data.changes }
+          : conv
+      )
+    );
   });
 
   return (

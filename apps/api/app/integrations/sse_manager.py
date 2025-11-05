@@ -4,7 +4,10 @@ SSE Manager para broadcast real-time (Singleton Pattern)
 from typing import Dict, AsyncGenerator
 import asyncio
 import json
+import logging
 from app.cache.redis_client import RedisClient
+
+logger = logging.getLogger(__name__)
 
 
 class SSEManager:
@@ -13,6 +16,7 @@ class SSEManager:
     _instance: "SSEManager | None" = None
     _subscribers: Dict[str, asyncio.Queue] = {}
     _pubsub = None
+    _redis_listener_task = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -26,6 +30,42 @@ class SSEManager:
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
+
+    async def start_redis_listener(self):
+        """Start listening to Redis pub/sub for multi-worker support"""
+        if self._redis_listener_task is not None:
+            return  # Already running
+
+        try:
+            redis = await RedisClient.get_instance()
+            pubsub = redis.client.pubsub()
+            await pubsub.subscribe("sse_events")
+
+            logger.info("SSE: Started Redis listener for multi-worker support")
+
+            async def listen():
+                try:
+                    async for message in pubsub.listen():
+                        if message["type"] == "message":
+                            try:
+                                data = json.loads(message["data"])
+                                # Broadcast to local subscribers
+                                for queue in self._subscribers.values():
+                                    try:
+                                        await queue.put(data)
+                                    except Exception as e:
+                                        logger.error(f"Failed to forward Redis message to client: {e}")
+                            except json.JSONDecodeError as e:
+                                logger.error(f"Failed to parse Redis message: {e}")
+                except Exception as e:
+                    logger.error(f"Redis listener error: {e}")
+                finally:
+                    await pubsub.unsubscribe("sse_events")
+                    await pubsub.close()
+
+            self._redis_listener_task = asyncio.create_task(listen())
+        except Exception as e:
+            logger.error(f"Failed to start Redis listener: {e}")
 
     async def subscribe(self, client_id: str) -> AsyncGenerator[str, None]:
         """Subscribe client to SSE stream"""

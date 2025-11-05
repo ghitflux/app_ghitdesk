@@ -25,7 +25,7 @@ class WhatsAppInboundStrategy(MessageProcessingStrategy):
     1. Validar duplicatas (Redis dedup)
     2. Buscar/criar conversation
     3. Salvar mensagem
-    4. Emit SSE para agents (será implementado)
+    4. Emit SSE para agents
     """
 
     async def process(
@@ -33,6 +33,8 @@ class WhatsAppInboundStrategy(MessageProcessingStrategy):
         message_data: dict,
         session: AsyncSession,
     ) -> dict:
+        from app.utils.events import broadcast_new_message, broadcast_conversation_update
+
         # 1. Verificar duplicatas (Redis)
         redis = await RedisClient.get_instance()
         message_id = message_data.get("message_id", "")
@@ -44,13 +46,38 @@ class WhatsAppInboundStrategy(MessageProcessingStrategy):
         # Marcar como processada (24h TTL)
         await redis.setex(dedup_key, 86400, "1")
 
-        # 2. TODO: Buscar/criar conversation
-        # 3. TODO: Salvar mensagem no banco
-        # 4. TODO: Emit SSE event
+        # 2. TODO: Buscar/criar conversation (simplified for now)
+        # For now, use phone number as conversation identifier
+        phone = message_data.get("from", "unknown")
+        conversation_id = f"whatsapp_{phone}"
+
+        # 3. TODO: Salvar mensagem no banco (will implement with repository later)
+
+        # 4. Broadcast SSE event for real-time updates
+        await broadcast_new_message(
+            conversation_id=conversation_id,
+            message={
+                "id": message_id,
+                "text": message_data.get("text", ""),
+                "from_customer": True,
+                "channel": "whatsapp",
+                "from": phone,
+            }
+        )
+
+        # Update conversation with new message
+        await broadcast_conversation_update(
+            conversation_id=conversation_id,
+            changes={
+                "last_message_at": message_data.get("timestamp"),
+                "unread_count": 1,  # Increment unread
+            }
+        )
 
         return {
             "status": "processed",
             "message_id": message_id,
+            "conversation_id": conversation_id,
         }
 
 
