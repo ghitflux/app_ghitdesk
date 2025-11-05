@@ -1,7 +1,8 @@
 'use client';
 
-import { Card, CardBody, CardHeader, Divider } from '@heroui/react';
-import { MessageCircle, Ticket, Clock, TrendingUp, CheckCircle, AlertCircle } from 'lucide-react';
+import { Card, CardBody, CardHeader, Divider, Button } from '@heroui/react';
+import { MessageCircle, Ticket, Clock, TrendingUp, CheckCircle, AlertCircle, Download } from 'lucide-react';
+import { exportReportsToCSV } from '@/utils/export';
 import {
   LineChart,
   Line,
@@ -69,11 +70,29 @@ export default function ReportsPage() {
     { date: '07/11', avgTime: 12, targetTime: 20 },
   ];
 
+  const handleExport = () => {
+    exportReportsToCSV({
+      metrics,
+      ticketsOverTime,
+      ticketsByStatus,
+      ticketsByPriority,
+    });
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Reports</h1>
-        <p className="text-default-500 mt-1">Métricas e análises do sistema</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Reports</h1>
+          <p className="text-default-500 mt-1">Métricas e análises do sistema</p>
+        </div>
+        <Button
+          color="primary"
+          startContent={<Download size={18} />}
+          onPress={handleExport}
+        >
+          Exportar CSV
+        </Button>
       </div>
 
       {/* KPI Cards */}

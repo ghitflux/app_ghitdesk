@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardBody, Input, Select, SelectItem } from '@heroui/react';
-import { Search, Ticket as TicketIcon } from 'lucide-react';
+import { Card, CardBody, Input, Select, SelectItem, Button } from '@heroui/react';
+import { Search, Ticket as TicketIcon, Download } from 'lucide-react';
 import { TicketCard } from '@/components/ghitdesk/ticket-card';
 import { useSSE, useSSEEvent } from '@/hooks/useSSE';
 import { apiClient } from '@/services/api-client';
+import { exportTicketsToCSV } from '@/utils/export';
 
 interface Ticket {
   id: string;
@@ -104,16 +105,27 @@ export default function TicketsPage() {
             Gerenciar tickets • {isConnected ? '🟢' : '🔴'} Real-time
           </p>
         </div>
-        <Select
-          label="Status"
-          placeholder="Todos"
-          className="w-48"
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <SelectItem key="open" value="open">Aberto</SelectItem>
-          <SelectItem key="in_progress" value="in_progress">Em Andamento</SelectItem>
-          <SelectItem key="resolved" value="resolved">Resolvido</SelectItem>
-        </Select>
+        <div className="flex gap-3">
+          <Select
+            label="Status"
+            placeholder="Todos"
+            className="w-48"
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <SelectItem key="open" value="open">Aberto</SelectItem>
+            <SelectItem key="in_progress" value="in_progress">Em Andamento</SelectItem>
+            <SelectItem key="resolved" value="resolved">Resolvido</SelectItem>
+          </Select>
+          <Button
+            color="default"
+            variant="flat"
+            startContent={<Download size={18} />}
+            onPress={() => exportTicketsToCSV(tickets)}
+            isDisabled={tickets.length === 0}
+          >
+            Exportar
+          </Button>
+        </div>
       </div>
 
       <Input
