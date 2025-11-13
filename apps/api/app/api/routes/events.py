@@ -1,14 +1,18 @@
 """SSE Events routes"""
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from app.integrations.sse_manager import SSEManager
+from app.api.dependencies.auth import get_current_user
+from app.models.user import User
 from uuid import uuid4
 
 router = APIRouter()
 
 
 @router.get("/stream")
-async def events_stream():
+async def events_stream(
+    current_user: User = Depends(get_current_user),
+):
     """SSE stream endpoint for real-time updates"""
     client_id = str(uuid4())
     sse_manager = SSEManager.get_instance()

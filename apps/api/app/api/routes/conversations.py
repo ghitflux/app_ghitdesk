@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from app.db.database import get_session
 from app.models.conversation import Conversation, ConversationStatus, Channel
+from app.models.user import User
+from app.api.dependencies.auth import get_current_user
 from typing import List, Optional
 
 router = APIRouter()
@@ -16,6 +18,7 @@ async def list_conversations(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ):
     """List conversations with filters"""
     query = select(Conversation)
@@ -63,6 +66,7 @@ async def list_conversations(
 async def get_conversation(
     conversation_id: str,
     session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ):
     """Get conversation by ID"""
     from uuid import UUID

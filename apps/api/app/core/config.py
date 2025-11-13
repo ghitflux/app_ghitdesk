@@ -38,6 +38,25 @@ class Settings(BaseSettings):
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 60
 
+    # WhatsApp Integration
+    WHATSAPP_API_TOKEN: str = ""
+    WHATSAPP_PHONE_NUMBER_ID: str = ""
+    WHATSAPP_WEBHOOK_VERIFY_TOKEN: str = "change_me_in_production"
+
+    # Email Integration
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_EMAIL: str = ""
+
+    # Telegram Integration
+    TELEGRAM_BOT_TOKEN: str = ""
+
+    # Security
+    COOKIE_SECURE: bool = True  # Set to False only in development
+    COOKIE_SAMESITE: str = "lax"  # strict, lax, or none
+
     class Config:
         env_file = ".env"
         case_sensitive = True

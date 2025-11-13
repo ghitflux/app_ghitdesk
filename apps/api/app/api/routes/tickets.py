@@ -4,7 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from app.db.database import get_session
 from app.models.ticket import Ticket, TicketStatus, TicketPriority
+from app.models.user import User
 from app.services.sla_service import SLAService
+from app.api.dependencies.auth import get_current_user
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -19,6 +21,7 @@ async def list_tickets(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ):
     """List tickets with filters"""
     query = select(Ticket)
@@ -80,6 +83,7 @@ async def list_tickets(
 async def get_ticket(
     ticket_id: str,
     session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ):
     """Get ticket by ID"""
     result = await session.execute(
