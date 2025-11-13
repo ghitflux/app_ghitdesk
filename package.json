@@ -10,13 +10,21 @@
     "storybook": "pnpm --filter web storybook"
   },
   "devDependencies": {
-    "turbo": "^1.10.0",
-    "@changesets/cli": "^2.27.0"
+    "@changesets/cli": "^2.27.0",
+    "turbo": "^1.10.0"
   },
   "pnpm": {
     "overrides": {
       "react": "18.2.0",
       "react-dom": "18.2.0"
+    },
+    "auditConfig": {
+      "ignoreCves": [
+        "node_modules",
+        ".next",
+        "dist",
+        "__pycache__"
+      ]
     }
   }
 }
