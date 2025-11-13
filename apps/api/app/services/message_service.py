@@ -35,16 +35,17 @@ class WhatsAppInboundStrategy(MessageProcessingStrategy):
     ) -> dict:
         from app.utils.events import broadcast_new_message, broadcast_conversation_update
 
-        # 1. Verificar duplicatas (Redis)
+        # 1. Verificar duplicatas (Redis) - atomic SET NX to prevent race condition
         redis = await RedisClient.get_instance()
         message_id = message_data.get("message_id", "")
         dedup_key = f"message:{message_id}"
 
-        if await redis.exists(dedup_key):
-            raise ValueError("Message already processed")
+        # Atomic: set only if not exists, with 24h TTL
+        # Returns True if key was set, False if already exists
+        was_set = await redis.set(dedup_key, "1", ex=86400, nx=True)
 
-        # Marcar como processada (24h TTL)
-        await redis.setex(dedup_key, 86400, "1")
+        if not was_set:
+            raise ValueError("Message already processed")
 
         # 2. TODO: Buscar/criar conversation (simplified for now)
         # For now, use phone number as conversation identifier

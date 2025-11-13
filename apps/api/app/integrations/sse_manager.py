@@ -68,22 +68,45 @@ class SSEManager:
             logger.error(f"Failed to start Redis listener: {e}")
 
     async def subscribe(self, client_id: str) -> AsyncGenerator[str, None]:
-        """Subscribe client to SSE stream"""
+        """Subscribe client to SSE stream with timeout and heartbeat"""
         queue = asyncio.Queue()
         self._subscribers[client_id] = queue
 
+        HEARTBEAT_INTERVAL = 60  # Send heartbeat every 60 seconds
+        INACTIVITY_TIMEOUT = 300  # Disconnect after 5 minutes of inactivity
+        last_activity = asyncio.get_event_loop().time()
+
         try:
             while True:
-                # Wait for messages
-                message = await queue.get()
-                yield f"data: {json.dumps(message)}\n\n"
+                try:
+                    # Wait for messages with timeout for heartbeat
+                    message = await asyncio.wait_for(
+                        queue.get(),
+                        timeout=HEARTBEAT_INTERVAL
+                    )
+                    last_activity = asyncio.get_event_loop().time()
+                    yield f"data: {json.dumps(message)}\n\n"
+
+                except asyncio.TimeoutError:
+                    # Send heartbeat or check inactivity
+                    current_time = asyncio.get_event_loop().time()
+
+                    # Check inactivity timeout
+                    if current_time - last_activity > INACTIVITY_TIMEOUT:
+                        logger.info(f"SSE client {client_id} disconnected due to inactivity")
+                        break
+
+                    # Send heartbeat ping (SSE comment = no-op for client)
+                    yield ": ping\n\n"
+
         except asyncio.CancelledError:
             # Client disconnected
-            pass
+            logger.info(f"SSE client {client_id} cancelled")
         finally:
             # Cleanup
             if client_id in self._subscribers:
                 del self._subscribers[client_id]
+                logger.info(f"SSE client {client_id} cleaned up ({len(self._subscribers)} remaining)")
 
     async def broadcast(self, event: str, data: dict) -> None:
         """Broadcast event to all connected clients"""

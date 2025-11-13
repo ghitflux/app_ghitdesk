@@ -1,11 +1,13 @@
 """Conversation routes"""
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from uuid import UUID
 from app.db.database import get_session
 from app.models.conversation import Conversation, ConversationStatus, Channel
 from app.models.user import User
 from app.api.dependencies.auth import get_current_user
+from app.utils.conversation_utils import reset_unread_count
 from typing import List, Optional
 
 router = APIRouter()
@@ -69,15 +71,12 @@ async def get_conversation(
     current_user: User = Depends(get_current_user),
 ):
     """Get conversation by ID"""
-    from uuid import UUID
-
     result = await session.execute(
         select(Conversation).where(Conversation.id == UUID(conversation_id))
     )
     conversation = result.scalars().first()
 
     if not conversation:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     return {
@@ -87,4 +86,38 @@ async def get_conversation(
         "unread_count": conversation.unread_count,
         "last_message_at": conversation.last_message_at.isoformat(),
         "created_at": conversation.created_at.isoformat(),
+    }
+
+
+@router.post("/{conversation_id}/mark-read")
+async def mark_conversation_as_read(
+    conversation_id: str,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Mark conversation as read (reset unread count to 0)
+    Uses atomic SQL update to prevent race conditions
+    """
+    try:
+        conv_uuid = UUID(conversation_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid conversation ID format")
+
+    # Verify conversation exists
+    result = await session.execute(
+        select(Conversation).where(Conversation.id == conv_uuid)
+    )
+    conversation = result.scalars().first()
+
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Atomic reset of unread count
+    await reset_unread_count(session, conv_uuid)
+
+    return {
+        "status": "ok",
+        "conversation_id": conversation_id,
+        "unread_count": 0
     }

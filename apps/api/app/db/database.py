@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     AsyncEngine,
 )
-from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import QueuePool
 from sqlalchemy.orm import declarative_base
 from app.core.config import get_settings
 
@@ -46,7 +46,11 @@ class DatabaseSessionFactory:
         cls._engine = create_async_engine(
             settings.DATABASE_URL,
             echo=settings.DATABASE_ECHO,
-            poolclass=NullPool,  # Use external pool (PgBouncer) in prod
+            poolclass=QueuePool,
+            pool_size=settings.DB_POOL_SIZE,  # Connections to keep open
+            max_overflow=settings.DB_MAX_OVERFLOW,  # Additional connections
+            pool_pre_ping=settings.DB_POOL_PRE_PING,  # Test before use
+            pool_recycle=settings.DB_POOL_RECYCLE,  # Recycle after N seconds
             future=True,
         )
 

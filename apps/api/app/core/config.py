@@ -19,6 +19,12 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     DATABASE_ECHO: bool = False
 
+    # Database Connection Pool
+    DB_POOL_SIZE: int = 20  # Number of connections to keep open
+    DB_MAX_OVERFLOW: int = 10  # Additional connections when pool is full
+    DB_POOL_RECYCLE: int = 3600  # Recycle connections after 1 hour (seconds)
+    DB_POOL_PRE_PING: bool = True  # Test connections before using them
+
     # Redis
     REDIS_URL: str = "redis://localhost:6379"
     REDIS_MAX_CONNECTIONS: int = 10
