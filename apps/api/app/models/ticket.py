@@ -5,6 +5,10 @@ from app.db.database import Base
 from enum import Enum
 from datetime import datetime
 from uuid import uuid4, UUID
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.tenant import Tenant
 
 
 class TicketPriority(str, Enum):
@@ -25,9 +29,14 @@ class Ticket(Base):
     __tablename__ = "tickets"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(
+        ForeignKey("tenants.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
 
     # Human-readable ID
-    ticket_number: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
+    ticket_number: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
 
     # Relations
     conversation_id: Mapped[UUID] = mapped_column(ForeignKey("conversations.id"), nullable=False, index=True)
@@ -63,10 +72,13 @@ class Ticket(Base):
     )
 
     # Relationships
+    tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="tickets")
     conversation = relationship("Conversation", backref="tickets")
     assignee = relationship("User", backref="assigned_tickets")
 
     __table_args__ = (
+        Index("ix_tickets_tenant_number", "tenant_id", "ticket_number", unique=True),
+        Index("ix_tickets_tenant_status", "tenant_id", "status"),
         Index("ix_tickets_status_priority", "status", "priority"),
         Index("ix_tickets_assignee_status", "assignee_id", "status"),
         Index("ix_tickets_sla_due", "resolution_due_at"),

@@ -1,8 +1,10 @@
 """Conversation routes"""
+from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from app.db.database import get_session
+from app.core.dependencies import TenantId
 from app.models.conversation import Conversation, ConversationStatus, Channel
 from typing import List, Optional
 
@@ -11,14 +13,15 @@ router = APIRouter()
 
 @router.get("/")
 async def list_conversations(
+    tenant_id: TenantId,
     status: Optional[ConversationStatus] = None,
     channel: Optional[Channel] = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     session: AsyncSession = Depends(get_session),
 ):
-    """List conversations with filters"""
-    query = select(Conversation)
+    """List conversations with filters (tenant-scoped)"""
+    query = select(Conversation).where(Conversation.tenant_id == tenant_id)
 
     if status:
         query = query.where(Conversation.status == status)
@@ -32,7 +35,7 @@ async def list_conversations(
     conversations = result.scalars().all()
 
     # Count total
-    count_query = select(func.count(Conversation.id))
+    count_query = select(func.count(Conversation.id)).where(Conversation.tenant_id == tenant_id)
     if status:
         count_query = count_query.where(Conversation.status == status)
     if channel:
@@ -62,18 +65,21 @@ async def list_conversations(
 @router.get("/{conversation_id}")
 async def get_conversation(
     conversation_id: str,
+    tenant_id: TenantId,
     session: AsyncSession = Depends(get_session),
 ):
-    """Get conversation by ID"""
-    from uuid import UUID
+    """Get conversation by ID (tenant-scoped)"""
+    from fastapi import HTTPException
 
     result = await session.execute(
-        select(Conversation).where(Conversation.id == UUID(conversation_id))
+        select(Conversation).where(
+            Conversation.id == UUID(conversation_id),
+            Conversation.tenant_id == tenant_id
+        )
     )
     conversation = result.scalars().first()
 
     if not conversation:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     return {

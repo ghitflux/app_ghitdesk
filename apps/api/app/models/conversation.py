@@ -5,6 +5,10 @@ from app.db.database import Base
 from enum import Enum
 from datetime import datetime
 from uuid import uuid4, UUID
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.tenant import Tenant
 
 
 class Channel(str, Enum):
@@ -25,6 +29,11 @@ class Conversation(Base):
     __tablename__ = "conversations"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(
+        ForeignKey("tenants.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
 
     # Relations
     contact_id: Mapped[UUID] = mapped_column(ForeignKey("contacts.id"), nullable=False, index=True)
@@ -55,11 +64,14 @@ class Conversation(Base):
     )
 
     # Relationships
+    tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="conversations")
     contact = relationship("Contact", backref="conversations")
     assigned_agent = relationship("User", backref="conversations")
     # messages = relationship("Message", back_populates="conversation")
 
     __table_args__ = (
+        Index("ix_conversations_tenant_status", "tenant_id", "status"),
+        Index("ix_conversations_tenant_channel", "tenant_id", "channel"),
         Index("ix_conversations_status_channel", "status", "channel"),
         Index("ix_conversations_agent_status", "assigned_agent_id", "status"),
     )

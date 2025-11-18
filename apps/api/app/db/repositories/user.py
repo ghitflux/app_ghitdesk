@@ -12,22 +12,42 @@ class UserRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get(self, id: UUID) -> Optional[User]:
-        """Get user by ID"""
+    async def get(self, id: UUID, tenant_id: UUID) -> Optional[User]:
+        """Get user by ID within tenant"""
         result = await self.session.execute(
-            select(User).where(User.id == id)
+            select(User).where(
+                User.id == id,
+                User.tenant_id == tenant_id
+            )
         )
         return result.scalars().first()
 
-    async def get_by_email(self, email: str) -> Optional[User]:
-        """Get user by email"""
+    async def get_by_email(self, email: str, tenant_id: UUID) -> Optional[User]:
+        """Get user by email within tenant"""
         result = await self.session.execute(
-            select(User).where(User.email == email)
+            select(User).where(
+                User.email == email,
+                User.tenant_id == tenant_id
+            )
         )
         return result.scalars().first()
 
-    async def get_active_by_email(self, email: str) -> Optional[User]:
-        """Get active user by email"""
+    async def get_active_by_email(self, email: str, tenant_id: UUID) -> Optional[User]:
+        """Get active user by email within tenant"""
+        result = await self.session.execute(
+            select(User).where(
+                User.email == email,
+                User.tenant_id == tenant_id,
+                User.is_active == True,
+            )
+        )
+        return result.scalars().first()
+
+    async def get_active_by_email_global(self, email: str) -> Optional[User]:
+        """
+        Get active user by email globally (without tenant filter).
+        Used ONLY for authentication to determine user's tenant.
+        """
         result = await self.session.execute(
             select(User).where(
                 User.email == email,
@@ -36,9 +56,17 @@ class UserRepository:
         )
         return result.scalars().first()
 
-    async def create(self, name: str, email: str, password_hash: str, role: Role = Role.AGENT) -> User:
-        """Create user"""
+    async def create(
+        self,
+        tenant_id: UUID,
+        name: str,
+        email: str,
+        password_hash: str,
+        role: Role = Role.AGENT
+    ) -> User:
+        """Create user within tenant"""
         user = User(
+            tenant_id=tenant_id,
             name=name,
             email=email,
             password_hash=password_hash,

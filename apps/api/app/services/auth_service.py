@@ -14,8 +14,8 @@ class AuthService:
         self.user_repo = user_repo
 
     async def authenticate(self, email: str, password: str) -> Optional[User]:
-        """Authenticate user"""
-        user = await self.user_repo.get_active_by_email(email)
+        """Authenticate user (searches globally to find tenant)"""
+        user = await self.user_repo.get_active_by_email_global(email)
 
         if not user:
             return None
@@ -26,11 +26,12 @@ class AuthService:
         return user
 
     def create_tokens(self, user: User) -> dict[str, str]:
-        """Create access and refresh tokens"""
+        """Create access and refresh tokens with tenant_id"""
         payload = {
             "sub": str(user.id),
             "email": user.email,
             "role": user.role.value,
+            "tenant_id": str(user.tenant_id),  # Include tenant_id in JWT
         }
 
         return {

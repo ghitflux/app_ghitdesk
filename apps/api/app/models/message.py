@@ -5,6 +5,10 @@ from app.db.database import Base
 from enum import Enum
 from datetime import datetime
 from uuid import uuid4, UUID
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.tenant import Tenant
 
 
 class MessageDirection(str, Enum):
@@ -24,6 +28,11 @@ class Message(Base):
     __tablename__ = "messages"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(
+        ForeignKey("tenants.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
 
     # Relations
     conversation_id: Mapped[UUID] = mapped_column(ForeignKey("conversations.id"), nullable=False, index=True)
@@ -57,9 +66,11 @@ class Message(Base):
     )
 
     # Relationships
+    tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="messages")
     conversation = relationship("Conversation", backref="messages")
     sender_user = relationship("User", backref="sent_messages")
 
     __table_args__ = (
+        Index("ix_messages_tenant_conversation", "tenant_id", "conversation_id"),
         Index("ix_messages_conversation_created", "conversation_id", "created_at"),
     )
