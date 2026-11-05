@@ -1,337 +1,105 @@
-# 🚀 GhitDesk MVP
+# GhitDesk — Omnichannel Helpdesk (MVP)
 
-Sistema de helpdesk omnichannel profissional com integração WhatsApp, IA e real-time.
+Helpdesk for small support teams: WhatsApp conversations land in a shared inbox, become tickets with SLA tracking, and update the agent UI in real time.
 
-## 📊 Status do Projeto
-
-✅ **TODAS AS 5 ETAPAS CONCLUÍDAS!**
-
-- ✅ ETAPA 1: Fundação Completa (Monorepo + HeroUI + Docker)
-- ✅ ETAPA 2: Design System (24 componentes + 63+ stories)
-- ✅ ETAPA 3: Backend Core + Auth (FastAPI + JWT + PostgreSQL)
-- ✅ ETAPA 4: Features MVP (WhatsApp + Inbox + Tickets + SSE + Padrões)
-- ✅ ETAPA 5: Testes + CI/CD + Documentação
-
-**Status:** 🎉 **MVP COMPLETO E FUNCIONAL**
-
-## 🛠️ Stack Tecnológica
-
-### Frontend
-- **Next.js 15** + React 18
-- **HeroUI** (design system completo)
-- **Tailwind CSS 4** (configuração via CSS)
-- **Storybook 9/10** (documentação visual)
-- **TanStack Query** (data fetching)
-- **SSE** (real-time updates)
-- **TypeScript** (strict mode)
-
-### Backend
-- **FastAPI** + Python 3.11
-- **SQLAlchemy 2.0** (async ORM)
-- **PostgreSQL 16** (banco de dados)
-- **Redis 7** (cache + pub/sub)
-- **Alembic** (migrations)
-- **JWT** (autenticação)
-- **SSE** (Server-Sent Events)
-
-### DevOps
-- **Docker + docker-compose**
-- **pnpm workspaces** + turbo
-- **GitHub Actions** CI/CD
-- **pytest** (testes backend)
-- **Vitest** (testes frontend)
-
-## 🏗️ Padrões de Design Implementados
-
-### Singleton Pattern (5 implementações)
-- **Config**: Carrega env vars uma vez
-- **DatabaseSessionFactory**: Instância única do engine
-- **RedisClient**: Conexão Redis singleton
-- **WhatsAppClient**: HTTP client reutilizável
-- **SSEManager**: Gerencia conexões SSE
-- **APIClient** (frontend): Requisições centralizadas
-
-### Factory Pattern
-- **ChannelFactory**: Cria handlers por canal (WhatsApp, Email, Telegram)
-- Extensível sem modificar código existente (Open/Closed Principle)
-
-### Strategy Pattern (2 implementações)
-- **SLA Calculation**: SimpleSLAStrategy (MVP) vs BusinessHoursSLAStrategy (futuro)
-- **Message Processing**: WhatsAppInboundStrategy, EmailInboundStrategy
-
-### Repository Pattern
-- **UserRepository**, **ConversationRepository**, etc.
-- Abstrai acesso a dados
-
-## 📋 Setup Local
-
-### Pré-requisitos
-- **Node.js 20+**
-- **pnpm 8+**
-- **Python 3.11+**
-- **Docker + docker-compose**
-
-### Instalação Rápida
-
-```bash
-# 1. Clonar repositório
-git clone https://github.com/ghitflux/app_ghitdesk.git
-cd app_ghitdesk
-
-# 2. Instalar dependências frontend
-pnpm install
-
-# 3. Configurar ambiente
-cp .env.example .env.local
-# Editar .env.local se necessário
-
-# 4. Subir Docker (Postgres + Redis)
-docker-compose up -d
-
-# 5. Setup Backend
-cd apps/api
-python -m venv venv
-venv\Scripts\activate  # Windows
-# ou
-source venv/bin/activate  # Linux/Mac
-
-pip install -r requirements.txt
-
-# 6. Rodar migrations
-alembic upgrade head
-
-# 7. Popular banco com dados de teste
-python seed_data.py
-
-# 8. Rodar backend (em um terminal)
-python -m app.main
-
-# 9. Rodar frontend (em outro terminal)
-cd ../..
-pnpm dev
-
-# 10. Rodar Storybook (opcional, em outro terminal)
-pnpm storybook
-```
-
-## 🌐 URLs Locais
-
-- **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:8000
-- **API Docs (OpenAPI):** http://localhost:8000/docs
-- **Storybook:** http://localhost:6006
-
-## 🔑 Credenciais de Teste
-
-Após rodar `seed_data.py`:
-
-- **Admin:** admin@ghitdesk.com / admin123
-- **Agent 1:** joao@ghitdesk.com / agent123
-- **Agent 2:** maria@ghitdesk.com / agent123
-
-## 🎨 Design System
-
-**24 componentes disponíveis:**
-- 16 componentes HeroUI base (Button, Input, Select, etc)
-- 8 componentes customizados GhitDesk (StatusBadge, PriorityBadge, TicketCard, etc)
-
-**Cores:**
-- Primary: `#6F6AFF` (roxo GhitDesk)
-- Success: `#16A34A` (verde)
-- Warning: `#D97706` (laranja)
-- Danger: `#EF4444` (vermelho)
-
-**Dark Mode:** Habilitado por padrão
-
-## 🧪 Testes
-
-### Backend (pytest)
-```bash
-cd apps/api
-pytest                          # Rodar todos
-pytest --cov=app               # Com coverage
-pytest tests/test_security.py  # Específico
-```
-
-### Frontend (Vitest)
-```bash
-cd apps/web
-pnpm test           # Rodar todos
-pnpm test:ui        # Interface visual
-pnpm test:coverage  # Com coverage
-```
-
-## 📊 Estrutura do Projeto
-
-```
-ghitdesk/
-├── apps/
-│   ├── web/                       # Next.js 15 frontend
-│   │   ├── src/
-│   │   │   ├── app/              # App Router (pages)
-│   │   │   ├── components/       # Componentes React
-│   │   │   │   └── ghitdesk/    # Componentes customizados
-│   │   │   ├── context/         # React Context (Auth)
-│   │   │   ├── services/        # API Client, SSE Client
-│   │   │   ├── hooks/           # Custom hooks
-│   │   │   └── lib/             # Utils
-│   │   ├── .storybook/          # Configuração Storybook
-│   │   └── vitest.config.ts     # Config testes
-│   │
-│   └── api/                       # FastAPI backend
-│       ├── app/
-│       │   ├── core/             # Config, Security (Singleton)
-│       │   ├── db/               # Database, Repositories
-│       │   ├── cache/            # RedisClient (Singleton)
-│       │   ├── models/           # SQLAlchemy models
-│       │   ├── schemas/          # Pydantic schemas
-│       │   ├── services/         # Business logic (Factory, Strategy)
-│       │   ├── integrations/     # WhatsApp, SSE (Singletons)
-│       │   └── api/routes/       # FastAPI endpoints
-│       ├── migrations/           # Alembic migrations
-│       ├── tests/                # Pytest tests
-│       ├── seed_data.py          # Script seed
-│       └── requirements.txt
-│
-├── stories/                       # Storybook stories
-│   └── components/
-│       ├── heroui/               # Stories HeroUI
-│       └── ghitdesk/             # Stories customizadas
-│
-├── docs/                          # Documentação completa
-│   ├── PLANO-GERAL-5-ETAPAS.md
-│   ├── ETAPA-1-CONCLUIDA.md
-│   ├── ETAPA-2-CONCLUIDA.md
-│   ├── ETAPA-3-CONCLUIDA.md
-│   ├── ETAPA-4-CONCLUIDA.md
-│   └── ETAPA-5-CONCLUIDA.md
-│
-├── .github/workflows/             # GitHub Actions CI/CD
-├── docker-compose.yml            # Postgres + Redis
-├── pnpm-workspace.yaml           # Monorepo config
-└── README.md                     # Este arquivo
-```
-
-## 🚀 Features Implementadas
-
-### Autenticação
-- ✅ Login/logout com JWT
-- ✅ Access + refresh tokens
-- ✅ Cookies httpOnly
-- ✅ Middleware proteção de rotas
-
-### Backend
-- ✅ 5 models SQLAlchemy (User, Contact, Conversation, Message, Ticket)
-- ✅ 7 endpoints REST API
-- ✅ Webhooks WhatsApp (verification + inbound)
-- ✅ SSE stream para real-time
-- ✅ SLA calculation automático
-- ✅ Message deduplication (Redis)
-
-### Frontend
-- ✅ Inbox page (lista conversas)
-- ✅ Tickets page (lista tickets com SLA)
-- ✅ Reports page (dashboard KPIs)
-- ✅ Real-time via SSE
-- ✅ Design system completo
-
-## 📚 Documentação
-
-- [📋 Plano Geral](docs/PLANO-GERAL-5-ETAPAS.md) - Visão geral das 5 etapas
-- [🏗️ ETAPA 1](docs/ETAPA-1-CONCLUIDA.md) - Fundação (Monorepo + HeroUI)
-- [🎨 ETAPA 2](docs/ETAPA-2-CONCLUIDA.md) - Design System (24 componentes)
-- [🔐 ETAPA 3](docs/ETAPA-3-CONCLUIDA.md) - Backend + Auth (FastAPI + JWT)
-- [🚀 ETAPA 4](docs/ETAPA-4-CONCLUIDA.md) - Features MVP (WhatsApp + SSE)
-- [✅ ETAPA 5](docs/ETAPA-5-CONCLUIDA.md) - Testes + CI/CD
-
-## 🔄 CI/CD
-
-GitHub Actions configurado com:
-- ✅ Lint (ESLint + TypeScript)
-- ✅ Testes backend (pytest + coverage)
-- ✅ Testes frontend (Vitest)
-- ✅ Build verificação
-- ✅ Postgres + Redis services
-
-## 🐛 Troubleshooting
-
-### Portas ocupadas
-```bash
-# Windows
-netstat -ano | findstr :3000
-taskkill /PID <PID> /F
-
-# Linux/Mac
-lsof -i :3000
-kill -9 <PID>
-```
-
-### Docker não sobe
-```bash
-docker-compose down -v
-docker-compose up -d
-docker-compose ps  # Verificar status
-```
-
-### Erro de migration
-```bash
-cd apps/api
-alembic downgrade base  # Limpar
-alembic upgrade head    # Aplicar novamente
-```
-
-### Dependências desatualizadas
-```bash
-pnpm install
-cd apps/api && pip install -r requirements.txt
-```
-
-## 📊 Estatísticas do Projeto
-
-- **Arquivos criados:** 120+
-- **Linhas de código:** ~8000+
-- **Testes:** 15+ (backend + frontend)
-- **Componentes:** 24 (HeroUI + customizados)
-- **Stories:** 63+
-- **Endpoints API:** 12+
-- **Models:** 5
-- **Padrões de design:** 8 implementações
-
-## 🎯 Próximos Passos (Roadmap)
-
-### Fase 2 - Expansão
-- [ ] Email channel (Factory Pattern)
-- [ ] Telegram channel (Factory Pattern)
-- [ ] BusinessHoursSLAStrategy (Strategy Pattern)
-- [ ] Attachments (S3 integration)
-- [ ] Multi-tenant support
-
-### Fase 3 - IA
-- [ ] STT (Speech-to-Text) para áudios
-- [ ] NER (Named Entity Recognition)
-- [ ] Resumo automático de conversas
-- [ ] Chatbot com GPT-4
-
-### Fase 4 - Analytics
-- [ ] Dashboard avançado
-- [ ] Relatórios customizáveis
-- [ ] Métricas em tempo real
-- [ ] Exportação de dados
-
-## 📞 Suporte
-
-- **Documentação:** Consultar `docs/`
-- **Issues:** GitHub Issues
-- **Email:** suporte@ghitflux.com
-
-## 📄 Licença
-
-MIT License - Veja LICENSE para detalhes
+**Stack:** Next.js 15 · React 18 · TypeScript · HeroUI · TanStack Query · FastAPI · SQLAlchemy 2 (async) · PostgreSQL 16 · Redis 7 · Docker · GitHub Actions
 
 ---
 
-**Desenvolvido com ❤️ pela equipe GhitFlux**
+## What it does
 
-**Tecnologias:** Next.js 15 • FastAPI • PostgreSQL • Redis • HeroUI • Tailwind 4 • Storybook 9
+- **Shared inbox** — WhatsApp messages arrive through a webhook and are grouped into conversations per contact.
+- **Tickets with SLA** — conversations can become tickets with priority, status and an SLA deadline calculated by a pluggable strategy.
+- **Real-time updates** — new messages and ticket changes are pushed to the browser via Server-Sent Events (SSE), with Redis pub/sub behind it.
+- **Auth** — JWT login with hashed passwords (bcrypt) and role-based screens for admins and agents.
+- **Design system** — HeroUI base components plus custom GhitDesk components (StatusBadge, PriorityBadge, TicketCard…), documented in Storybook.
 
-**Status:** ✅ MVP Completo e Funcional
+## Architecture
+
+```mermaid
+flowchart LR
+  WA[WhatsApp API] -- webhook --> API
+  subgraph API["apps/api (FastAPI)"]
+    R["Routes: auth, conversations, tickets, events, webhooks"]
+    S["Services: auth, channel, message, SLA"]
+    Repo[Repositories]
+    SSE[SSE manager]
+  end
+  API --> PG[(PostgreSQL)]
+  API <--> RD[(Redis pub/sub + cache)]
+  subgraph WEB["apps/web (Next.js)"]
+    UI[Agent / Admin UI]
+    Q[TanStack Query + API client]
+  end
+  Q -- REST --> R
+  SSE -- events --> UI
+```
+
+### Design patterns (and where to find them)
+
+| Pattern | Where | Why |
+|---|---|---|
+| Factory | `apps/api/app/services/channel_service.py` (ChannelFactory) | Add a new channel (e-mail, Telegram) without touching existing handlers |
+| Strategy | `apps/api/app/services/sla_service.py` (SimpleSLAStrategy, BusinessHoursSLAStrategy) | Swap SLA rules per account |
+| Strategy | `apps/api/app/services/message_service.py` (WhatsApp / e-mail inbound) | Each channel parses inbound messages its own way |
+| Repository | `apps/api/app/db/repositories/` | Keep SQL out of the services; easier to test |
+| Singleton | `core/config.py`, `cache/redis_client.py`, `integrations/sse_manager.py`, `integrations/whatsapp_client.py` | One engine/connection pool per process |
+
+## Project structure
+
+```
+apps/
+  web/   Next.js App Router · components/ghitdesk · services (API + SSE client) · Storybook
+  api/   FastAPI · core · db/repositories · models · schemas · services · integrations · migrations (Alembic) · tests
+docs/    architecture notes, roadmap, security checklist
+.github/workflows/ci.yml   lint · backend tests (Postgres + Redis services) · frontend tests · build
+```
+
+## Running locally
+
+Requirements: Node 20+, pnpm 8+, Python 3.11+, Docker.
+
+```bash
+git clone https://github.com/ghitflux/app_ghitdesk.git && cd app_ghitdesk
+pnpm install
+cp .env.example .env.local          # adjust if needed
+docker-compose up -d                # PostgreSQL + Redis
+
+cd apps/api
+python -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+alembic upgrade head
+python seed_data.py                 # demo users and data
+python -m app.main                  # API on http://localhost:8000 (docs at /docs)
+
+cd ../.. && pnpm dev                # Web on http://localhost:3000
+pnpm storybook                      # optional, http://localhost:6006
+```
+
+Demo users created by `seed_data.py` (local only): `admin@ghitdesk.com / admin123`, `joao@ghitdesk.com / agent123`.
+
+## Tests and CI
+
+```bash
+cd apps/api && pytest --cov=app     # backend: channel factory, security, SLA service
+pnpm --filter web test              # frontend (Vitest)
+```
+
+Every push and pull request runs lint, backend tests against real PostgreSQL and Redis containers, frontend tests and the production build (`.github/workflows/ci.yml`).
+
+## Status and next steps
+
+MVP: inbox, tickets, SLA, SSE and auth work end to end with WhatsApp as the first channel. Next on the list:
+
+- e-mail channel end to end (the inbound strategy and factory slot already exist);
+- business-hours SLA as the default for accounts with opening hours;
+- multi-tenant isolation (one schema per organization);
+- broader test coverage on routes and the web app.
+
+## How it was built
+
+Spec first, small diffs, human review before anything sensitive. I use AI coding assistants for scaffolding and tests, and every change goes through review and CI before merge (`CLAUDE.md` holds the project rules the assistant follows).
+
+---
+
+Hélcio Venâncio · [github.com/ghitflux](https://github.com/ghitflux)
